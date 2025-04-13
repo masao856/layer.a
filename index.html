@@ -1,0 +1,83 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Last Layer</title>
+  <style>
+    body {
+      background-color: #111;
+      color: #eee;
+      font-family: 'Georgia', serif;
+      text-align: center;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+    }
+    #status {
+      margin: 10px 0;
+      font-size: 1.2rem;
+    }
+    #log {
+      margin: 20px 0;
+      padding: 10px;
+      background: #222;
+      border-radius: 8px;
+    }
+    .btn {
+      margin: 8px;
+      padding: 12px 20px;
+      background: #333;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+    .btn:hover {
+      background: #555;
+    }
+    img {
+      max-width: 95vw;
+      height: auto;
+      border-radius: 10px;
+      margin: 10px 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>Last Layer</h1>
+  <img id="scene" src="fork.png" alt="ダンジョン" />
+  <div id="status">HP: 20 / MP: 10</div>
+  <div id="log">冒険を始めよう。</div>
+  <div>
+    <button class="btn" onclick="stepForward()">進む</button>
+    <button class="btn" onclick="stepBack()">戻る</button>
+    <button class="btn" onclick="attack()">攻撃</button>
+    <button class="btn" onclick="showItems()">アイテム</button>
+    <button class="btn" onclick="showSkills()">スキル</button>
+  </div>
+
+  <script>
+    function stepForward() {
+      document.getElementById("log").textContent = "あなたは通路を前に進んだ……";
+    }
+    function stepBack() {
+      document.getElementById("log").textContent = "あなたは通路を引き返した……";
+    }
+    function attack() {
+      document.getElementById("log").textContent = "あなたは攻撃した！";
+    }
+    function showItems() {
+      document.getElementById("log").textContent = "アイテムを確認中……";
+    }
+    function showSkills() {
+      document.getElementById("log").textContent = "スキルを確認中……";
+    }
+  </script>
+</body>
+</html>
