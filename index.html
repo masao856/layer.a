@@ -1,0 +1,195 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Last Layer - 距離＆戻る＆ボス出現</title>
+  <style>
+    body { background: #111; color: #eee; font-family: Georgia, serif; text-align: center; margin: 0; }
+    img { max-width: 95vw; height: auto; }
+    .btn { margin: 10px; padding: 14px 24px; background: #333; color: #fff; border: none; border-radius: 6px; font-size: 1.2rem; }
+    .btn:disabled { opacity: 0.5; }
+    .log { background: rgba(255,255,255,0.05); padding: 16px; margin: 12px auto; max-width: 700px; border-radius: 10px; font-size: 1.1rem; }
+  </style>
+</head>
+<body>
+<div id="game">
+  <img id="scene" src="fork.png" alt="通路" />
+  <div class="log" id="log">探索を開始できます。</div>
+  <button class="btn" onclick="stepForward()">進む</button>
+  <button class="btn" onclick="goBack()">戻る</button>
+  <button class="btn" onclick="showItems()">アイテム</button>
+  <button class="btn" onclick="showSkills()">スキル</button>
+</div>
+
+<script>
+const state = {
+  hp: 20,
+  mp: 10,
+  attack: 5,
+  magic: 3,
+  defense: 3,
+  inventory: ["ポーション"],
+  skills: ["回復魔法", "攻撃魔法"],
+  battle: false,
+  enemy: null,
+  distance: 0
+};
+
+const enemies = {
+  random: [
+    { name: "影", hp: 12, attack: 4, defense: 1, img: "enemy.png" },
+    { name: "野盗", hp: 14, attack: 6, defense: 2, img: "bandit.png" },
+    { name: "ゾンビ", hp: 18, attack: 4, defense: 4, img: "zombie.png" },
+    { name: "獣人の野盗", hp: 16, attack: 5, defense: 3, img: "beastman.png" }
+  ],
+  midboss: { name: "黒鉄の鎧", hp: 25, attack: 7, defense: 6, img: "armor_enemy_midboss_final.png" },
+  boss: { name: "堕ちた王", hp: 35, attack: 8, defense: 4, img: "enemy_fallen_king_boss.png" }
+};
+
+function log(msg) {
+  const logBox = document.getElementById("log");
+  if (logBox) logBox.innerHTML = `【進行距離：${state.distance}m】<br>` + msg;
+}
+
+function stepForward() {
+  state.distance += 50;
+  let enemy;
+  if (state.distance === 600) {
+    enemy = enemies.midboss;
+  } else if (state.distance === 1000) {
+    enemy = enemies.boss;
+  } else {
+    enemy = enemies.random[Math.floor(Math.random() * enemies.random.length)];
+  }
+  startBattle(enemy);
+}
+
+function goBack() {
+  state.distance -= 50;
+  if (state.distance < 0) state.distance = 0;
+  log("あなたは通路を引き返している……");
+}
+
+function startBattle(enemy) {
+  state.battle = true;
+  state.enemy = { ...enemy };
+  document.getElementById("scene").src = enemy.img;
+  updateUIForBattle();
+}
+
+function attackEnemy() {
+  const dmg = Math.max(1, state.attack - (state.enemy.defense || 0));
+  state.enemy.hp -= dmg;
+  log(`あなたの攻撃！${state.enemy.name} に ${dmg} ダメージ！`);
+
+  if (state.enemy.hp <= 0) {
+    log(`${state.enemy.name} を倒した！`);
+    state.battle = false;
+    state.distance += 50;
+    showPostBattleOptions();
+  } else {
+    setTimeout(enemyAttack, 1000);
+  }
+}
+
+function enemyAttack() {
+  const dmg = Math.max(1, state.enemy.attack - state.defense);
+  state.hp -= dmg;
+  log(`${state.enemy.name} の攻撃！あなたは ${dmg} ダメージを受けた！`);
+
+  if (state.hp <= 0) {
+    log("あなたは力尽きた……");
+    disableAll();
+  } else {
+    setTimeout(updateUIForBattle, 1000);
+  }
+}
+
+function updateUIForBattle() {
+  document.getElementById("game").innerHTML = `
+    <img id="scene" src="${state.enemy.img}" />
+    <div class="log" id="log">【進行距離：${state.distance}m】<br>${state.enemy.name} が現れた！<br>あなたのHP: ${state.hp} / MP: ${state.mp}<br>敵のHP: ${state.enemy.hp}</div>
+    <button class="btn" onclick="attackEnemy()">攻撃</button>
+    <button class="btn" onclick="showItems()">アイテム</button>
+    <button class="btn" onclick="showSkills()">スキル</button>
+  `;
+}
+
+function showItems() {
+  const logBox = document.getElementById("log");
+  logBox.innerHTML = `【進行距離：${state.distance}m】<br>使うアイテムを選んでください：<br>`;
+  state.inventory.forEach((item, i) => {
+    logBox.innerHTML += `<button class="btn" onclick="useItem(${i})">${item}</button>`;
+  });
+}
+
+function useItem(index) {
+  const item = state.inventory[index];
+  if (item === "ポーション") {
+    state.hp += 15;
+    if (state.hp > 20) state.hp = 20;
+    log("ポーションを使ってHPを15回復した！");
+    state.inventory.splice(index, 1);
+    setTimeout(updateUIForBattle, 1000);
+  }
+}
+
+function showSkills() {
+  const logBox = document.getElementById("log");
+  logBox.innerHTML = `【進行距離：${state.distance}m】<br>使うスキルを選んでください：<br>`;
+  state.skills.forEach((skill) => {
+    logBox.innerHTML += `<button class="btn" onclick="useSkill('${skill}')">${skill}</button>`;
+  });
+}
+
+function useSkill(skill) {
+  if (skill === "回復魔法") {
+    if (state.mp >= 3) {
+      state.hp += 10;
+      if (state.hp > 20) state.hp = 20;
+      state.mp -= 3;
+      log("回復魔法を使ってHPを10回復した！");
+    } else {
+      log("MPが足りない！");
+    }
+  } else if (skill === "攻撃魔法") {
+    if (state.mp >= 4) {
+      state.enemy.hp -= 10;
+      state.mp -= 4;
+      log("攻撃魔法で敵に10ダメージ！");
+    } else {
+      log("MPが足りない！");
+    }
+  }
+
+  setTimeout(() => {
+    if (state.enemy.hp <= 0) {
+      log(`${state.enemy.name} を倒した！`);
+      state.battle = false;
+      state.distance += 50;
+      showPostBattleOptions();
+    } else {
+      updateUIForBattle();
+    }
+  }, 1000);
+}
+
+function showPostBattleOptions() {
+  document.getElementById("game").innerHTML = `
+    <img id="scene" src="fork.png" />
+    <div class="log" id="log">【進行距離：${state.distance}m】<br>戦闘終了。探索を続けますか？</div>
+    <button class="btn" onclick="stepForward()">進む</button>
+    <button class="btn" onclick="goBack()">戻る</button>
+    <button class="btn" onclick="showItems()">アイテム</button>
+    <button class="btn" onclick="showSkills()">スキル</button>
+  `;
+}
+
+function disableAll() {
+  document.getElementById("game").innerHTML = "<h1>GAME OVER</h1>";
+}
+</script>
+</body>
+</html>
