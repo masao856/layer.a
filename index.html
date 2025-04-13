@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Last Layer 完全版</title>
+  <style>
+    body { background: #111; color: #eee; font-family: sans-serif; text-align: center; margin: 0; padding: 1em; }
+    .btn { margin: 6px; padding: 10px 20px; background: #444; color: #fff; border: none; border-radius: 6px; font-size: 1rem; }
+    .log, .status { margin: 10px auto; max-width: 90%; background: #222; padding: 10px; border-radius: 8px; }
+    img { max-width: 90vw; height: auto; margin: 1em auto; display: block; }
+    .item-icon { width: 20px; height: 20px; vertical-align: middle; margin-right: 6px; }
+  </style>
+</head>
+<body>
+  <h1>Last Layer</h1>
+  <img id="scene" src="fork.png" alt="Scene" />
+  <div class="status" id="status">HP: -- / MP: --</div>
+  <div class="log" id="log">冒険を始めよう。</div>
+  <div id="controls">
+    <button class="btn" onclick="stepForward()">進む</button>
+    <button class="btn" onclick="goBack()">戻る</button>
+    <button class="btn" onclick="attack()">攻撃</button>
+    <button class="btn" onclick="showItems()">アイテム</button>
+    <button class="btn" onclick="showSkills()">スキル</button>
+  </div>
+
+<script>
+// JavaScript機能は次のセルで別途追加
+
+<script>
+window.addEventListener("DOMContentLoaded", function () {
+  const logBox = document.getElementById("log");
+  const statusBox = document.getElementById("status");
+  const scene = document.getElementById("scene");
+
+  const state = {
+    hp: 20, mp: 10, maxHp: 20, maxMp: 10,
+    atk: 5, def: 3, level: 1, exp: 0, nextExp: 20,
+    dist: 0, battle: false, choosingStat: false,
+    inventory: ["ショートソード", "ポーション"],
+    skills: ["回復魔法", "攻撃魔法"],
+    enemy: null
+  };
+
+  function updateStatus() {
+    statusBox.textContent = `HP: ${state.hp}/${state.maxHp} | MP: ${state.mp}/${state.maxMp} | Lv: ${state.level} | 距離: ${state.dist}m`;
+  }
+
+  window.log = function (msg) {
+    logBox.innerHTML = msg;
+    updateStatus();
+  };
+
+  window.stepForward = function () {
+    if (state.battle || state.choosingStat) return;
+    state.dist += 50;
+    if (Math.random() < 0.02) {
+      state.hp = state.maxHp;
+      state.mp = state.maxMp;
+      scene.src = "fountain_dark_dungeon.png";
+      log("泉を見つけた！HPとMPが全回復した。");
+      return;
+    }
+    if (state.dist === 600) return startBattle({ name: "黒鉄の鎧", hp: 25, atk: 7, def: 6, img: "armor_enemy_midboss_final.png" });
+    if (state.dist === 1000) return startBattle({ name: "堕ちた王", hp: 35, atk: 8, def: 4, img: "enemy_fallen_king_boss.png" });
+    const enemies = [
+      { name: "影", hp: 12, atk: 4, def: 1, img: "enemy.png" },
+      { name: "野盗", hp: 14, atk: 6, def: 2, img: "bandit.png" },
+      { name: "ゾンビ", hp: 18, atk: 4, def: 4, img: "zombie.png" },
+      { name: "獣人の野盗", hp: 16, atk: 5, def: 3, img: "beastman.png" }
+    ];
+    const enemy = enemies[Math.floor(Math.random() * enemies.length)];
+    startBattle(enemy);
+  };
+
+  window.goBack = function () {
+    if (state.battle || state.choosingStat) return;
+    state.dist = Math.max(0, state.dist - 50);
+    scene.src = "fork.png";
+    log("あなたは後退した。");
+  };
+
+  function startBattle(enemy) {
+    state.battle = true;
+    state.enemy = Object.assign({}, enemy);
+    scene.src = enemy.img;
+    log(`${enemy.name} が現れた！`);
+  }
+
+  window.attack = function () {
+    if (!state.battle || state.choosingStat) return;
+    const damage = Math.max(1, state.atk - (state.enemy.def || 0));
+    state.enemy.hp -= damage;
+    log(`${state.enemy.name} に ${damage} ダメージ！`);
+    if (state.enemy.hp <= 0) {
+      state.battle = false;
+      log(`${state.enemy.name} を倒した！`);
+      gainExp(10);
+      scene.src = "fork.png";
+    } else {
+      setTimeout(() => {
+        const edmg = Math.max(1, (state.enemy.atk || 4) - state.def);
+        state.hp -= edmg;
+        log(`${state.enemy.name} の攻撃！ ${edmg} ダメージ！`);
+        if (state.hp <= 0) {
+          log("あなたは力尽きた…… GAME OVER");
+          state.battle = false;
+        }
+      }, 500);
+    }
+  };
+
+  function gainExp(amount) {
+    state.exp += amount;
+    if (state.exp >= state.nextExp) {
+      state.exp -= state.nextExp;
+      state.nextExp = Math.floor(state.nextExp * 1.5);
+      state.level++;
+      state.choosingStat = true;
+      log("レベルアップ！ステータスを選んでください：<br>" +
+        "<button class='btn' onclick='levelUp("hp")'>HP</button>" +
+        "<button class='btn' onclick='levelUp("mp")'>MP</button>" +
+        "<button class='btn' onclick='levelUp("atk")'>攻撃力</button>" +
+        "<button class='btn' onclick='levelUp("def")'>防御力</button>");
+    }
+  }
+
+  window.levelUp = function (stat) {
+    if (stat === "hp") { state.maxHp += 5; state.hp += 5; }
+    if (stat === "mp") { state.maxMp += 3; state.mp += 3; }
+    if (stat === "atk") state.atk += 1;
+    if (stat === "def") state.def += 1;
+    state.choosingStat = false;
+    log(`${stat.toUpperCase()} が成長した！`);
+  };
+
+  window.showItems = function () {
+    const items = state.inventory.map((item, i) =>
+      `<button class='btn' onclick='useItem(${i})'>${item}</button>`).join(" ");
+    log(items || "アイテムなし");
+  };
+
+  window.useItem = function (i) {
+    const item = state.inventory[i];
+    if (item === "ポーション") {
+      state.hp = Math.min(state.maxHp, state.hp + 15);
+      state.inventory.splice(i, 1);
+      log("ポーションを使ってHPを回復した！");
+    } else {
+      log(`${item} は使用できません`);
+    }
+  };
+
+  window.showSkills = function () {
+    log("スキル：<br>" +
+      `<button class='btn' onclick='useSkill("回復魔法")'>回復魔法</button>` +
+      `<button class='btn' onclick='useSkill("攻撃魔法")'>攻撃魔法</button>`);
+  };
+
+  window.useSkill = function (skill) {
+    if (!state.battle || state.choosingStat) return;
+    if (skill === "回復魔法" && state.mp >= 3) {
+      state.hp = Math.min(state.maxHp, state.hp + 10);
+      state.mp -= 3;
+      log("回復魔法でHPを回復！");
+    } else if (skill === "攻撃魔法" && state.mp >= 4) {
+      state.enemy.hp -= 10;
+      state.mp -= 4;
+      log("攻撃魔法で敵に10ダメージ！");
+      if (state.enemy.hp <= 0) {
+        state.battle = false;
+        log(`${state.enemy.name} を倒した！`);
+        gainExp(10);
+        scene.src = "fork.png";
+      }
+    } else {
+      log("MPが足りない！");
+    }
+  };
+
+  log("冒険を始めよう。");
+});
+</script>
+
+</body>
+</html>
