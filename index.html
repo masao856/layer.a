@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Last Layer</title>
+  <style>
+    body {
+      background: #111;
+      color: #eee;
+      font-family: "Georgia", serif;
+      text-align: center;
+      margin: 0;
+    }
+    img {
+      max-width: 100%;
+      height: auto;
+    }
+    .btn {
+      margin: 10px;
+      padding: 12px 20px;
+      background: #333;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: 1rem;
+    }
+    .log {
+      background: rgba(255, 255, 255, 0.05);
+      padding: 10px;
+      margin: 10px auto;
+      max-width: 700px;
+      border-radius: 10px;
+      font-size: 1.1rem;
+    }
+    .button-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Last Layer</h1>
+  <img id="scene" src="fork.png" alt="Scene"/>
+  <div class="log" id="status">HP: 20 / MP: 10</div>
+  <div class="log" id="log">冒険を始めよう。</div>
+  <div class="button-row">
+    <button class="btn" onclick="step()">進む</button>
+    <button class="btn" onclick="goBack()">戻る</button>
+    <button class="btn" onclick="attack()">攻撃</button>
+    <button class="btn" onclick="showItems()">アイテム</button>
+    <button class="btn" onclick="showSkills()">スキル</button>
+  </div>
+
+<script>
+let player = {
+  hp: 20, mp: 10, atk: 5, def: 3, magic: 3, mdef: 2, spd: 5,
+  level: 1, exp: 0, nextExp: 20, pos: 0,
+  inventory: ["ポーション"], skills: ["ファイアボルト"]
+};
+let inBattle = false;
+let enemy = null;
+
+function updateStatus() {
+  document.getElementById("status").textContent = "HP: " + player.hp + " / MP: " + player.mp;
+}
+
+function log(msg) {
+  document.getElementById("log").textContent = msg;
+}
+
+function step() {
+  if (inBattle) return;
+  player.pos += 50;
+  updateStatus();
+  if (Math.random() < 0.3) {
+    spawnEnemy();
+  } else if (Math.random() < 0.02) {
+    player.hp = 20;
+    player.mp = 10;
+    log("泉を見つけた！HPとMPが全回復した。");
+  } else if (player.pos === 600) {
+    spawnEnemy("黒鉄の鎧", 25, 7);
+  } else if (player.pos === 1000) {
+    spawnEnemy("堕ちた王", 35, 8);
+  } else {
+    log(player.pos + "m地点に進んだ。");
+  }
+}
+
+function goBack() {
+  if (inBattle) return;
+  player.pos = Math.max(0, player.pos - 50);
+  updateStatus();
+  log(player.pos + "m地点に戻った。");
+}
+
+function spawnEnemy(name = "影", hp = 15, atk = 5) {
+  enemy = { name: name, hp: hp, atk: atk };
+  inBattle = true;
+  document.getElementById("scene").src = "enemy.png";
+  log(name + " が現れた！");
+}
+
+function attack() {
+  if (!inBattle || !enemy) return;
+  enemy.hp -= player.atk;
+  if (enemy.hp <= 0) {
+    log(enemy.name + " を倒した！");
+    gainExp(10);
+    inBattle = false;
+    document.getElementById("scene").src = "fork.png";
+  } else {
+    player.hp -= Math.max(1, enemy.atk - player.def);
+    if (player.hp <= 0) {
+      log("あなたは力尽きた……");
+    } else {
+      log(enemy.name + " に攻撃！反撃を受けた！");
+    }
+  }
+  updateStatus();
+}
+
+function gainExp(amount) {
+  player.exp += amount;
+  if (player.exp >= player.nextExp) {
+    player.level++;
+    player.exp = 0;
+    player.nextExp = Math.floor(player.nextExp * 1.5);
+    player.hp += 5;
+    player.atk += 1;
+    log("レベルアップ！ステータスが少し上がった。");
+    updateStatus();
+  }
+}
+
+function showItems() {
+  log("ポーションを使った。HP回復！");
+  player.hp = Math.min(20, player.hp + 10);
+  updateStatus();
+}
+
+function showSkills() {
+  log("ファイアボルトを放った！（演出未実装）");
+}
+updateStatus();
+</script>
+</body>
+</html>
