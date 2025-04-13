@@ -1,0 +1,151 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Last Layer</title>
+  <style>
+    body {
+      background: #111;
+      color: #eee;
+      font-family: 'Georgia', serif;
+      text-align: center;
+      margin: 0;
+    }
+    h1 {
+      font-size: 2em;
+      margin: 0.5em 0;
+    }
+    #scene {
+      width: 100%;
+      max-width: 600px;
+      height: auto;
+      display: block;
+      margin: 0 auto;
+    }
+    .log, .inventory {
+      background: rgba(255, 255, 255, 0.05);
+      padding: 1em;
+      margin: 1em auto;
+      max-width: 600px;
+      border-radius: 8px;
+      font-size: 1.1em;
+    }
+    .btn {
+      padding: 0.6em 1.2em;
+      margin: 0.5em;
+      font-size: 1.1em;
+      background-color: #333;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+    }
+    .item-icon {
+      width: 24px;
+      height: 24px;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Last Layer</h1>
+  <img id="scene" src="fork.png" alt="scene">
+  <div class="log" id="log">冒険を始めよう。</div>
+  <div id="hpmp">HP: 20 / MP: 10</div>
+  <div>
+    <button class="btn" onclick="step()">進む</button>
+    <button class="btn" onclick="showItems()">アイテム</button>
+    <button class="btn" onclick="showSkills()">スキル</button>
+    <button class="btn" onclick="attack()">攻撃</button>
+  </div>
+
+<script>
+let state = {
+  hp: 20,
+  mp: 10,
+  inventory: ["ショートソード", "ポーション"],
+  defeated: [],
+  enemy: null,
+  log: [],
+};
+
+const enemies = [
+  { name: "野盗", hp: 12, attack: 4, img: "bandit.png", drop: "ロングソード" },
+  { name: "ゾンビ", hp: 15, attack: 3, img: "zombie.png", drop: null },
+  { name: "獣人の野盗", hp: 18, attack: 5, img: "beastman.png", drop: "ポーション" }
+];
+
+function log(msg) {
+  const el = document.getElementById("log");
+  state.log.unshift(msg);
+  if (state.log.length > 5) state.log.pop();
+  el.innerHTML = state.log.join("<br>");
+}
+
+function updateStats() {
+  document.getElementById("hpmp").innerText = `HP: ${state.hp} / MP: ${state.mp}`;
+}
+
+function step() {
+  if (Math.random() < 0.5) {
+    const e = enemies[Math.floor(Math.random() * enemies.length)];
+    state.enemy = { ...e };
+    document.getElementById("scene").src = e.img;
+    log(`${e.name} が現れた！`);
+  } else {
+    document.getElementById("scene").src = "fork.png";
+    log("あなたは通路を進んだ……");
+  }
+}
+
+function attack() {
+  if (!state.enemy) {
+    log("敵がいない！");
+    return;
+  }
+  state.enemy.hp -= 5;
+  log(`あなたは${state.enemy.name}に攻撃した！`);
+
+  if (state.enemy.hp <= 0) {
+    log(`${state.enemy.name} を倒した！`);
+    if (state.enemy.drop) {
+      state.inventory.push(state.enemy.drop);
+      log(`${state.enemy.drop} を手に入れた！`);
+    }
+    state.defeated.push(state.enemy.name);
+    state.enemy = null;
+    document.getElementById("scene").src = "fork.png";
+  } else {
+    state.hp -= state.enemy.attack;
+    log(`${state.enemy.name} の攻撃！ あなたは ${state.enemy.attack} ダメージを受けた！`);
+    if (state.hp <= 0) {
+      log("あなたは倒れた……");
+    }
+  }
+  updateStats();
+}
+
+function showItems() {
+  const list = state.inventory.map(item =>
+    `<button class="btn"><img class="item-icon" src="${getItemIcon(item)}">${item}</button>`
+  ).join("<br>");
+  log(`<div class="inventory">${list}</div>`);
+}
+
+function showSkills() {
+  log("スキル: ファイアボール、ヒール（未実装）");
+}
+
+function getItemIcon(name) {
+  if (name.includes("ポーション")) return "item_potion_basic_final.png";
+  if (name.includes("ロングソード")) return "item_sword_longsword_final_updated.png";
+  if (name.includes("ショートソード")) return "sword.png";
+  return "sword.png";
+}
+
+updateStats();
+</script>
+</body>
+</html>
