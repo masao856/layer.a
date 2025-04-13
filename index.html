@@ -1,0 +1,45 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Last Layer 修正版</title>
+  <style>
+    body { background: #111; color: #eee; font-family: sans-serif; text-align: center; margin: 0; padding: 1em; }
+    .btn { margin: 8px; padding: 10px 20px; background: #444; color: #fff; border: none; border-radius: 6px; font-size: 1rem; }
+    .log { margin: 10px auto; max-width: 90%; background: #222; padding: 10px; border-radius: 8px; }
+    img { max-width: 90vw; height: auto; margin: 1em auto; display: block; }
+  </style>
+</head>
+<body>
+  <h1>Last Layer</h1>
+  <img id="scene" src="fork.png" alt="Scene" />
+  <div class="log" id="log">冒険を始めよう。</div>
+  <div id="controls">
+    <button class="btn" onclick="stepForward()">進む</button>
+    <button class="btn" onclick="goBack()">戻る</button>
+  </div>
+
+<script>
+  function log(msg) {
+    document.getElementById("log").innerHTML = msg;
+  }
+
+  function stepForward() {
+    log("あなたは前進した…");
+    document.getElementById("scene").src = "fork.png";
+  }
+
+  function goBack() {
+    log("あなたは後退した…");
+    document.getElementById("scene").src = "fork.png";
+  }
+
+  // ページ読み込み後にログ表示を更新
+  document.addEventListener("DOMContentLoaded", function() {
+    log("冒険を始めよう。");
+  });
+</script>
+</body>
+</html>
