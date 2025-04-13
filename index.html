@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Last Layer 完全版</title>
+  <style>
+    body { background: #111; color: #eee; font-family: sans-serif; text-align: center; margin: 0; padding: 1em; }
+    .btn { margin: 6px; padding: 10px 20px; background: #444; color: #fff; border: none; border-radius: 6px; font-size: 1rem; }
+    .log, .status { margin: 10px auto; max-width: 90%; background: #222; padding: 10px; border-radius: 8px; }
+    img { max-width: 90vw; height: auto; margin: 1em auto; display: block; }
+    .item-icon { width: 20px; height: 20px; vertical-align: middle; margin-right: 6px; }
+  </style>
+</head>
+<body>
+  <h1>Last Layer</h1>
+  <img id="scene" src="fork.png" alt="Scene" />
+  <div class="status" id="status">HP: -- / MP: --</div>
+  <div class="log" id="log">冒険を始めよう。</div>
+  <div id="controls">
+    <button class="btn" onclick="stepForward()">進む</button>
+    <button class="btn" onclick="goBack()">戻る</button>
+    <button class="btn" onclick="attack()">攻撃</button>
+    <button class="btn" onclick="showItems()">アイテム</button>
+    <button class="btn" onclick="showSkills()">スキル</button>
+  </div>
+
+<script>
+// JavaScript機能は次のセルで別途追加
+</script>
+</body>
+</html>
