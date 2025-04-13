@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Last Layer</title>
+  <style>
+    body {
+      background: #111;
+      color: #eee;
+      font-family: "Georgia", serif;
+      text-align: center;
+      margin: 0;
+    }
+    img {
+      max-width: 95vw;
+      height: auto;
+    }
+    .btn {
+      margin: 10px;
+      padding: 14px 24px;
+      background: #333;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: 1.2rem;
+    }
+    .btn:disabled {
+      opacity: 0.5;
+    }
+    .log, .inventory, .skills {
+      background: rgba(255, 255, 255, 0.05);
+      padding: 16px;
+      margin: 12px auto;
+      max-width: 700px;
+      border-radius: 10px;
+      font-size: 1.1rem;
+    }
+    .image-row {
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    .item-icon {
+      height: 28px;
+      width: 28px;
+      vertical-align: middle;
+      margin-right: 10px;
+    }
+    .shake {
+      animation: shake 0.2s;
+    }
+    @keyframes shake {
+      0% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      50% { transform: translateX(5px); }
+      75% { transform: translateX(-5px); }
+      100% { transform: translateX(0); }
+    }
+    .flash {
+      filter: brightness(3);
+      transition: filter 0.1s ease;
+    }
+  </style>
+</head>
+<body>
+<div id="game">
+  <img id="scene" src="fork.png" alt="通路画像" />
+  <div class="log" id="log">準備完了。冒険を始めよう。</div>
+  <button class="btn" onclick="stepForward()">進む</button>
+  <button class="btn" onclick="goBack()">戻る</button>
+  <button class="btn" onclick="showItems()">アイテム</button>
+  <button class="btn" onclick="showSkills()">スキル</button>
+</div>
+<script>
+// 本文は省略（長文のため）、あとで full_script に分けて書き込み
+</script>
+</body>
+</html>
