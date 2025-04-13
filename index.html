@@ -1,0 +1,218 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Last Layer</title>
+  <style>
+    body { background: #111; color: #eee; font-family: 'Georgia', serif; text-align: center; margin: 0; }
+    img { max-width: 95vw; height: auto; }
+    .btn { margin: 10px; padding: 14px 24px; background: #333; color: #fff; border: none; border-radius: 6px; font-size: 1.2rem; }
+    .btn:disabled { opacity: 0.5; }
+    .log, .inventory, .skills {
+      background: rgba(255, 255, 255, 0.05);
+      padding: 16px;
+      margin: 12px auto;
+      max-width: 700px;
+      border-radius: 10px;
+      font-size: 1.1rem;
+    }
+    .image-row {
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    .item-icon {
+      height: 28px;
+      width: 28px;
+      vertical-align: middle;
+      margin-right: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div id="game">
+    <img id="scene" src="fork.png" alt="通路" />
+    <div class="log" id="log">前方に分かれ道がある。どちらに進む？</div>
+    <button class="btn" onclick="startBattle()">左に進む</button>
+    <button class="btn" onclick="startBattle()">右に進む</button>
+    <button class="btn" onclick="showItems()">アイテム</button>
+    <button class="btn" onclick="showSkills()">スキル</button>
+  </div>
+
+  <script>
+    let state = {
+      battle: 0,
+      playerHP: 30,
+      enemyHP: 10,
+      sword: "short",
+      inventory: ["ショートソード"],
+      usedSkills: { heal: false, fire: false },
+      inBattle: false,
+      sawChest: false
+    };
+
+    const enemies = [
+      { name: "影", img: "enemy.png", hp: 10, drop: "ロングソード" },
+      { name: "黒鉄の鎧", img: "armor_enemy_midboss_final.png", hp: 14, drop: null },
+      { name: "堕ちた王", img: "enemy_fallen_king_boss.png", hp: 20, drop: null }
+    ];
+
+    function startBattle() {
+      state.inBattle = true;
+      const e = enemies[state.battle];
+      state.enemyHP = e.hp;
+      document.getElementById("game").innerHTML = `
+        <div class="image-row">
+          <div><img src="character.png" style="max-height:120px;"><div>あなた</div></div>
+          <div><img src="${e.img}" style="max-height:230px;"><div>${e.name}</div></div>
+        </div>
+        <div class="log" id="log">${e.name} が現れた！</div>
+        <div class="log" id="status">HP: ${state.playerHP} / 敵HP: ${state.enemyHP}</div>
+        <button class="btn" onclick="attack()">攻撃</button>
+        <button class="btn" onclick="showSkills()">スキル</button>
+        <button class="btn" onclick="showItems()">アイテム</button>
+      `;
+    }
+
+    function updateStatus() {
+      document.getElementById("status").textContent = `HP: ${state.playerHP} / 敵HP: ${state.enemyHP}`;
+    }
+
+    function attack() {
+      if (!state.inBattle) return;
+      const dmg = state.sword === "long" ? 7 : 4;
+      state.enemyHP -= dmg;
+      log(`あなたの攻撃！${dmg}ダメージ`);
+      checkVictory();
+    }
+
+    function showItems() {
+      const items = state.inventory.map(i => {
+        const icon = i.includes("ポーション") ? "item_potion_basic_final.png" :
+                     i.includes("ロング") ? "item_sword_longsword_final_updated.png" :
+                     "sword.png";
+        return `<button class="btn" onclick="useItem('${i}')"><img src="${icon}" class="item-icon">${i}</button>`;
+      }).join(" ");
+      log(`<div class="inventory">${items || "アイテムなし"}</div>`);
+    }
+
+    function showSkills() {
+      const skills = `
+        <button class="btn" ${state.usedSkills.fire ? 'disabled' : ''} onclick="useSkill('fire')">攻撃魔法</button>
+        <button class="btn" ${state.usedSkills.heal ? 'disabled' : ''} onclick="useSkill('heal')">回復魔法</button>
+      `;
+      log(`<div class="skills">${skills}</div>`);
+    }
+
+    function useItem(item) {
+      if (item === "ポーション") {
+        state.playerHP += 10;
+        state.inventory = state.inventory.filter(i => i !== item);
+        log("ポーションを使用！HPが10回復");
+      } else if (item === "ロングソード") {
+        state.sword = "long";
+        log("ロングソードを装備！");
+      } else if (item === "ショートソード") {
+        state.sword = "short";
+        log("ショートソードを装備！");
+      }
+      updateStatus();
+    }
+
+    function useSkill(skill) {
+      if (state.usedSkills[skill]) return;
+      if (skill === "fire") {
+        state.enemyHP -= 6;
+        log("攻撃魔法を放った！6ダメージ");
+      } else if (skill === "heal") {
+        state.playerHP += 8;
+        log("回復魔法を使った！HPが8回復");
+      }
+      state.usedSkills[skill] = true;
+      updateStatus();
+      checkVictory();
+    }
+
+    function enemyTurn() {
+      if (!state.inBattle) return;
+      state.playerHP -= 5;
+      log("敵の攻撃！あなたは5ダメージを受けた");
+      if (state.playerHP <= 0) {
+        state.playerHP = 0;
+        updateStatus();
+        endGame(false);
+      } else {
+        updateStatus();
+      }
+    }
+
+    function checkVictory() {
+      if (state.enemyHP <= 0) {
+        state.enemyHP = 0;
+        updateStatus();
+        const e = enemies[state.battle];
+        state.inBattle = false;
+
+        if (state.battle === 0 && !state.inventory.includes("ロングソード")) {
+          state.inventory.push("ロングソード");
+          log(`${e.name} を倒した！ロングソードを手に入れた！<br><button class='btn' onclick='walkCorridor()'>進む</button>`);
+        } else if (state.battle === 1) {
+          log(`${e.name} を倒した！<br><button class='btn' onclick='walkCorridor(true)'>進む</button>`);
+        } else {
+          log(`${e.name} を倒した！<br><button class='btn' onclick='showDeepMessage()'>進む</button>`);
+        }
+      } else {
+        enemyTurn();
+      }
+    }
+
+    function walkCorridor(showChest = false) {
+      let html = `
+        <img src="fork.png" alt="通路">
+        <div class="log">あなたは通路を進んでいる……</div>
+        <button class="btn" onclick="nextBattle()">進む</button>
+        <button class="btn" onclick="showItems()">アイテム</button>
+        <button class="btn" onclick="showSkills()">スキル</button>
+      `;
+      if (showChest && !state.sawChest) {
+        state.inventory.push("ポーション");
+        state.sawChest = true;
+        html = `
+          <img src="fork.png" alt="通路">
+          <div class="log">通路の先で宝箱を発見！ポーションを手に入れた！</div>
+          <button class="btn" onclick="nextBattle()">進む</button>
+          <button class="btn" onclick="showItems()">アイテム</button>
+        `;
+      }
+      document.getElementById("game").innerHTML = html;
+    }
+
+    function showDeepMessage() {
+      document.getElementById("game").innerHTML = `
+        <img src="fork.png" alt="通路">
+        <div class="log">あなたはさらに深層へと進む……</div>
+      `;
+    }
+
+    function nextBattle() {
+      state.battle++;
+      state.usedSkills = { heal: false, fire: false };
+      startBattle();
+    }
+
+    function endGame(win) {
+      document.getElementById("game").innerHTML = win
+        ? "<h2>最下層に到達した……</h2><p>願いは叶うのか。</p>"
+        : "<h2>あなたは敗北した……</h2><p>冒険はここで終わる。</p>";
+    }
+
+    function log(msg) {
+      document.getElementById("log").innerHTML = msg;
+    }
+  </script>
+</body>
+</html>
