@@ -1,0 +1,56 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>Last Layer - Fallback</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Georgia', serif;
+            background-color: black;
+            color: white;
+            text-align: center;
+        }
+        #text-box {
+            padding: 30px 20px;
+            background-color: #111;
+        }
+        .choice-button {
+            display: block;
+            width: 80%;
+            margin: 15px auto;
+            padding: 15px;
+            font-size: 1.2em;
+            background-color: #444;
+            color: white;
+            border: none;
+            border-radius: 8px;
+        }
+        .choice-button:active {
+            background-color: #777;
+        }
+    </style>
+</head>
+<body>
+    <div id="text-box">
+        <div id="story-text">あなたの前には分かれ道がある。どちらへ進む？</div>
+        <button class="choice-button" onclick="showLeft()">左の道へ進む</button>
+        <button class="choice-button" onclick="showRight()">右の道へ進む</button>
+    </div>
+
+    <script>
+        function showLeft() {
+            document.getElementById('story-text').textContent =
+                'あなたは血に染まった壁の道を選んだ。空気が重く、遠くで何かが呻いている……。';
+        }
+
+        function showRight() {
+            document.getElementById('story-text').textContent =
+                'あなたは崩れた階段を降りる道を選んだ。足元が不安定で、先が見えない。';
+        }
+    </script>
+</body>
+</html>
