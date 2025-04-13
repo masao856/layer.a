@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Last Layer</title>
+  <style>
+    body {
+      background: #111;
+      color: #eee;
+      font-family: "Georgia", serif;
+      text-align: center;
+      margin: 0;
+    }
+    img {
+      max-width: 95vw;
+      height: auto;
+    }
+    .btn {
+      margin: 10px;
+      padding: 14px 24px;
+      background: #333;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: 1.2rem;
+    }
+    .btn:disabled {
+      opacity: 0.5;
+    }
+    .log, .inventory, .skills {
+      background: rgba(255, 255, 255, 0.05);
+      padding: 16px;
+      margin: 12px auto;
+      max-width: 700px;
+      border-radius: 10px;
+      font-size: 1.1rem;
+    }
+    .image-row {
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    .item-icon {
+      height: 28px;
+      width: 28px;
+      vertical-align: middle;
+      margin-right: 10px;
+    }
+    .shake {
+      animation: shake 0.2s;
+    }
+    @keyframes shake {
+      0% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      50% { transform: translateX(5px); }
+      75% { transform: translateX(-5px); }
+      100% { transform: translateX(0); }
+    }
+    .flash {
+      filter: brightness(3);
+      transition: filter 0.1s ease;
+    }
+  </style>
+</head>
+<body>
+<h1>Last Layer</h1>
+<img id="scene" src="fork.png" alt="scene" />
+<div class="log" id="log">準備完了。冒険を始めよう。</div>
+<div id="status">HP: -- / MP: --</div>
+<div>
+  <button class="btn" onclick="stepForward()">進む</button>
+  <button class="btn" onclick="stepBack()">戻る</button>
+  <button class="btn" onclick="attackEnemy()">攻撃</button>
+</div>
+<div>
+  <button class="btn" onclick="showItems()">アイテム</button>
+  <button class="btn" onclick="showSkills()">スキル</button>
+</div>
+
+<script>
+const state = {
+  hp: 20,
+  mp: 10,
+  attack: 5,
+  magic: 3,
+  defense: 3,
+  magicDefense: 2,
+  speed: 5,
+  level: 1,
+  exp: 0,
+  nextExp: 20,
+  distance: 0,
+  inventory: ["ショートソード"],
+  equipped: { right: "ショートソード", left: null },
+  encounterChance: 0.3,
+  battle: false,
+  enemy: null,
+  defeated: [],
+  awaitingInput: false
+};
+
+function updateStatus() {
+  const status = document.getElementById("status");
+  status.textContent = `HP: ${state.hp} / MP: ${state.mp}`;
+}
+
+function stepForward() {
+  if (state.battle) return;
+  state.distance += 50;
+  document.getElementById("scene").src = "fork.png";
+  log(`通路を進んだ（現在の距離: ${state.distance}m）`);
+  updateStatus();
+}
+
+function stepBack() {
+  if (state.battle) return;
+  state.distance = Math.max(0, state.distance - 50);
+  document.getElementById("scene").src = "fork.png";
+  log(`通路を戻った（現在の距離: ${state.distance}m）`);
+  updateStatus();
+}
+
+function attackEnemy() {
+  if (!state.battle || state.awaitingInput || !state.enemy) return;
+  const damage = Math.max(1, state.attack - (state.enemy.defense || 0));
+  state.enemy.hp -= damage;
+  log(`敵に ${damage} ダメージ！`);
+
+  if (state.enemy.hp <= 0) {
+    log(`敵を倒した！`);
+    state.battle = false;
+  }
+  updateStatus();
+}
+
+function showItems() {
+  log("アイテム一覧（未実装）");
+}
+function showSkills() {
+  log("スキル一覧（未実装）");
+}
+function log(msg) {
+  document.getElementById("log").textContent = msg;
+}
+window.onload = () => {
+  updateStatus();
+};
+</script>
+</body>
+</html>
