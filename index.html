@@ -1,0 +1,177 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Last Layer</title>
+  <style>
+    body {
+      background: #111;
+      color: #eee;
+      font-family: "Georgia", serif;
+      text-align: center;
+      margin: 0;
+    }
+    img {
+      max-width: 100%;
+      height: auto;
+    }
+    .btn {
+      margin: 8px;
+      padding: 10px 18px;
+      background: #333;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: 1.2rem;
+    }
+    .btn:disabled {
+      opacity: 0.5;
+    }
+    .log, .inventory, .skills {
+      background: rgba(255, 255, 255, 0.08);
+      padding: 10px;
+      margin: 10px auto;
+      max-width: 700px;
+      border-radius: 8px;
+      font-size: 1.1rem;
+    }
+    .image-row {
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    .item-icon {
+      height: 28px;
+      width: 28px;
+      vertical-align: middle;
+      margin-right: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Last Layer</h1>
+  <div>
+    <img id="scene" src="fork.png" alt="scene" />
+  </div>
+  <div id="status">HP: 20 / MP: 10</div>
+  <div class="log" id="log">冒険を始めよう。</div>
+  <div id="controls">
+    <button class="btn" onclick="stepForward()">進む</button>
+    <button class="btn" onclick="showItems()">アイテム</button>
+    <button class="btn" onclick="showSkills()">スキル</button>
+    <button class="btn" onclick="attackEnemy()">攻撃</button>
+  </div>
+  <script>
+    const state = {
+      hp: 20,
+      mp: 10,
+      attack: 5,
+      magic: 3,
+      defense: 3,
+      magicDefense: 2,
+      speed: 5,
+      level: 1,
+      exp: 0,
+      nextExp: 20,
+      inventory: ["ショートソード", "ポーション"],
+      equipped: { right: "ショートソード", left: null },
+      skills: ["ファイアボール", "ヒール"],
+      distance: 0,
+      battle: false,
+      enemy: null,
+      defeated: [],
+      awaitingInput: false
+    };
+
+    const weapons = {
+      "ショートソード": { atk: 5, slot: "片手", icon: "sword.png" },
+      "ロングソード": { atk: 7, slot: "片手", icon: "item_sword_longsword_final_updated.png" },
+      "鉄の盾": { def: 4, slot: "片手", icon: "iron_shield.png" },
+      "バスタードソード": { atk: 12, slot: "両手", icon: "bastard_sword.png" }
+    };
+
+    const enemies = [
+      { name: "野盗", hp: 14, attack: 6, defense: 2, speed: 6, img: "bandit.png", drop: { item: "ロングソード", chance: 0.1 }},
+      { name: "ゾンビ", hp: 18, attack: 4, defense: 4, speed: 2, img: "zombie.png" },
+      { name: "獣人の野盗", hp: 16, attack: 5, defense: 3, speed: 7, img: "beastman.png", drop: { item: "ポーション", chance: 0.4 }},
+      { name: "黒鉄の鎧", hp: 25, attack: 7, defense: 6, speed: 3, img: "armor_enemy_midboss_final.png", drop: { item: "鉄の盾", chance: 1.0 }},
+      { name: "堕ちた王", hp: 70, attack: 16, magic: 8, defense: 8, magicDefense: 8, speed: 4, img: "enemy_fallen_king_boss.png" }
+    ];
+
+    function stepForward() {
+      state.distance += 50;
+      log(`現在地：${state.distance}m`);
+
+      if (state.distance === 600 && !state.defeated.includes("黒鉄の鎧")) {
+        startBattle(enemies[3]);
+        return;
+      }
+      if (state.distance === 1000 && !state.defeated.includes("堕ちた王")) {
+        startBattle(enemies[4]);
+        return;
+      }
+      if (Math.random() < 0.4) {
+        const pool = enemies.slice(0, 3);
+        const enemy = pool[Math.floor(Math.random() * pool.length)];
+        startBattle(enemy);
+      } else {
+        log("あなたは通路を進んだ……");
+      }
+    }
+
+    function startBattle(enemy) {
+      state.battle = true;
+      state.enemy = { ...enemy };
+      document.getElementById("scene").src = enemy.img;
+      log(`${enemy.name} が現れた！`);
+    }
+
+    function attackEnemy() {
+      if (!state.battle) return;
+      const weaponRight = weapons[state.equipped.right] || {};
+      const weaponLeft = weapons[state.equipped.left] || {};
+      let totalAtk = state.attack + (weaponRight.atk || 0) + (weaponLeft.atk || 0);
+      state.enemy.hp -= totalAtk;
+      log(`敵に攻撃した！`);
+
+      if (state.enemy.hp <= 0) {
+        log(`${state.enemy.name} を倒した！`);
+        state.defeated.push(state.enemy.name);
+        state.battle = false;
+        document.getElementById("scene").src = "fork.png";
+        if (state.enemy.drop && Math.random() < state.enemy.drop.chance) {
+          state.inventory.push(state.enemy.drop.item);
+          log(`${state.enemy.drop.item} を手に入れた！`);
+        }
+      }
+    }
+
+    function showItems() {
+      let output = '<div class="inventory">';
+      for (const item of state.inventory) {
+        const icon = weapons[item]?.icon || "item_potion_basic_final.png";
+        output += `<div><img class="item-icon" src="${icon}">${item}</div>`;
+      }
+      output += '</div>';
+      log(output);
+    }
+
+    function showSkills() {
+      let output = '<div class="skills">';
+      for (const skill of state.skills) {
+        output += `<div>${skill}（未実装）</div>`;
+      }
+      output += '</div>';
+      log(output);
+    }
+
+    function log(msg) {
+      document.getElementById("log").innerHTML = msg;
+    }
+  </script>
+</body>
+</html>
