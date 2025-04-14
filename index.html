@@ -1,0 +1,27 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>Last Layer Test</title>
+</head>
+<body>
+  <h1>Last Layer テストページ</h1>
+  <p>ボタンを押して動作確認</p>
+  <button onclick="goForward()">進む</button>
+  <button onclick="goBack()">戻る</button>
+  <p id="log">ログ出力</p>
+
+  <script>
+    alert("JavaScript 動作確認：成功！");
+
+    window.goForward = function() {
+      document.getElementById("log").innerText = "前に進みました！";
+    }
+
+    window.goBack = function() {
+      document.getElementById("log").innerText = "後ろに戻りました！";
+    }
+  </script>
+</body>
+</html>
