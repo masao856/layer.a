@@ -1,0 +1,98 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Last Layer</title>
+  <style>
+    body {
+      background: #111;
+      color: #eee;
+      font-family: "Georgia", serif;
+      text-align: center;
+      margin: 0;
+    }
+    #log {
+      max-height: 100px;
+      overflow-y: auto;
+      margin: 10px auto;
+      padding: 10px;
+      width: 90%;
+      background: rgba(255,255,255,0.05);
+      border-radius: 10px;
+    }
+    .btn {
+      margin: 10px;
+      padding: 10px 20px;
+      background: #333;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: 1.2rem;
+    }
+    .item-icon {
+      height: 28px;
+      width: 28px;
+      vertical-align: middle;
+      margin-right: 10px;
+    }
+    #distance {
+      font-size: 1.1rem;
+      margin-top: 8px;
+      color: #aaa;
+    }
+  </style>
+</head>
+<body>
+  <h1>Last Layer</h1>
+  <div id="distance">現在地：0m</div>
+  <div id="log">冒険を始めよう。</div>
+  <div>
+    <button class="btn" onclick="step()">進む</button>
+    <button class="btn" onclick="showItems()">アイテム</button>
+    <button class="btn" onclick="showSkills()">スキル</button>
+    <button class="btn" onclick="attack()">攻撃</button>
+  </div>
+
+  <script>
+    let state = {
+      distance: 0,
+      log: [],
+      hp: 20,
+      mp: 10,
+      inventory: ["ポーション"],
+      skills: ["ファイアボール", "ヒール"]
+    };
+
+    function updateLog(msg) {
+      const log = document.getElementById("log");
+      state.log.unshift(msg);
+      if (state.log.length > 3) state.log.pop();
+      log.innerHTML = state.log.join("<br>");
+    }
+
+    function updateDistance() {
+      document.getElementById("distance").innerText = `現在地：${state.distance}m`;
+    }
+
+    function step() {
+      state.distance += 50;
+      updateDistance();
+      updateLog("あなたは通路を進んだ……");
+    }
+
+    function showItems() {
+      updateLog("アイテム: " + state.inventory.join(", "));
+    }
+
+    function showSkills() {
+      updateLog("スキル: " + state.skills.join(", "));
+    }
+
+    function attack() {
+      updateLog("敵に攻撃した！");
+    }
+  </script>
+</body>
+</html>
