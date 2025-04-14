@@ -1,0 +1,177 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Last Layer</title>
+  <style>
+    body {
+      font-family: "Arial", sans-serif;
+      background-color: #111;
+      color: white;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      padding: 20px;
+    }
+    .log {
+      background-color: #222;
+      padding: 10px;
+      margin: 10px auto;
+      max-width: 600px;
+      min-height: 80px;
+      white-space: pre-line;
+      overflow-y: auto;
+    }
+    .status {
+      font-size: 1.2em;
+      margin: 10px;
+    }
+    .scene {
+      width: 80%;
+      max-width: 400px;
+      height: auto;
+      margin: 10px auto;
+    }
+    button {
+      margin: 5px;
+      padding: 10px 20px;
+      font-size: 1em;
+      background-color: #333;
+      color: white;
+      border: none;
+      border-radius: 5px;
+    }
+    .item, .skill {
+      display: inline-block;
+      margin: 10px;
+      padding: 10px;
+      background-color: #333;
+      border-radius: 5px;
+    }
+    .item img, .skill img {
+      width: 32px;
+      height: 32px;
+      vertical-align: middle;
+      margin-right: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Last Layer</h1>
+    <div class="status" id="status">HP: 20 / MP: 10<br>EXP: 0<br>現在地：0m</div>
+    <img src="safe_zone_background.png" id="scene" class="scene" alt="scene" />
+    <div class="log" id="log">冒険を始めよう……</div>
+    <div>
+      <button onclick="goForward()">進む</button>
+      <button onclick="goBack()">戻る</button>
+      <button onclick="attack()">攻撃</button>
+      <button onclick="showItems()">アイテム</button>
+      <button onclick="showSkills()">スキル</button>
+    </div>
+    <div id="items"></div>
+    <div id="skills"></div>
+  </div>
+  
+<script>
+const player = {
+  hp: 22, mp: 11, maxHp: 22, maxMp: 11, exp: 0, level: 1,
+  items: [{ name: "ポーション", icon: "item_potion_basic_fire.png", effect: () => {
+    player.hp = Math.min(player.hp + 10, player.maxHp);
+    log('ポーションを使用してHPを回復した！');
+  }}],
+  skills: [{ name: "ファイアボール", icon: "fireball.png", effect: () => {
+    log("ファイアボールを唱えた！（効果未実装）");
+  }}]
+};
+let location = 0;
+const logDiv = document.getElementById("log");
+const statusDiv = document.getElementById("status");
+const scene = document.getElementById("scene");
+
+function updateStatus() {
+  statusDiv.innerHTML = `HP: ${player.hp} / MP: ${player.mp}<br>EXP: ${player.exp}<br>現在地：${location}m`;
+}
+
+function log(message) {
+  logDiv.innerText = message + "\n" + logDiv.innerText.split("\n").slice(0, 4).join("\n");
+}
+
+function goForward() {
+  location += 50;
+  if (location === 600) {
+    log("黒鉄の鎧が現れた！（イベント戦）");
+    scene.src = "armor_enemy_midboss.png";
+  } else if (location === 1000) {
+    log("堕ちた王が現れた！（ボス戦）");
+    scene.src = "enemy_fallen_king_final.png";
+  } else if (Math.random() < 0.15) {
+    scene.src = "fountain_dark_dungeon.png";
+    player.hp = player.maxHp;
+    player.mp = player.maxMp;
+    log("泉を見つけた！HPとMPが全回復した！");
+  } else {
+    scene.src = "dungeon_background.png";
+    log("あなたは通路を進んだ……");
+  }
+  updateStatus();
+}
+
+function goBack() {
+  if (location > 0) {
+    location -= 50;
+    if (location === 0) {
+      scene.src = "safe_zone_background.png";
+      player.hp = player.maxHp;
+      player.mp = player.maxMp;
+      log("街に戻って休憩した。HPとMPが全回復！");
+    } else {
+      scene.src = "dungeon_background.png";
+      log("あなたは通路を戻った……");
+    }
+    updateStatus();
+  }
+}
+
+function attack() {
+  log("敵に攻撃した！");
+}
+
+function showItems() {
+  const container = document.getElementById("items");
+  container.innerHTML = "";
+  player.items.forEach((item, index) => {
+    const btn = document.createElement("div");
+    btn.className = "item";
+    btn.innerHTML = `<img src="${item.icon}" alt="">${item.name}`;
+    btn.onclick = () => {
+      item.effect();
+      updateStatus();
+    };
+    container.appendChild(btn);
+  });
+}
+
+function showSkills() {
+  const container = document.getElementById("skills");
+  container.innerHTML = "";
+  player.skills.forEach((skill, index) => {
+    const btn = document.createElement("div");
+    btn.className = "skill";
+    btn.innerHTML = `<img src="${skill.icon}" alt="">${skill.name}`;
+    btn.onclick = () => {
+      skill.effect();
+    };
+    container.appendChild(btn);
+  });
+}
+
+updateStatus();
+</script>
+
+</body>
+</html>
