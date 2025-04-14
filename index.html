@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Last Layer</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background-color: #111;
+      color: #eee;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+    }
+    #scene {
+      width: 90%;
+      max-width: 300px;
+      margin: 20px auto;
+      display: block;
+    }
+    .log {
+      background: #222;
+      padding: 10px;
+      margin: 10px;
+      border-radius: 8px;
+    }
+    .btn {
+      margin: 5px;
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      background-color: #444;
+      color: #fff;
+      border-radius: 5px;
+    }
+    .btn:hover {
+      background-color: #666;
+    }
+  </style>
+</head>
+<body>
+  <h1>Last Layer</h1>
+  <div id="status">HP: 20 / MP: 10</div>
+  <div id="location">現在地：0m</div>
+  <img id="scene" src="fork.png" alt="scene">
+  <div class="log" id="log">冒険を始めよう。</div>
+  <div>
+    <button class="btn" onclick="step()">進む</button>
+    <button class="btn" onclick="goBack()">戻る</button>
+    <button class="btn" onclick="attack()">攻撃</button>
+    <button class="btn" onclick="showItems()">アイテム</button>
+    <button class="btn" onclick="showSkills()">スキル</button>
+  </div>
+
+  <script>
+    const state = {
+      hp: 20,
+      mp: 10,
+      exp: 0,
+      nextExp: 20,
+      position: 0,
+      enemy: null,
+      inventory: ["ショートソード", "ポーション"],
+      equipped: { right: null, left: null },
+      log: [],
+    };
+
+    function updateUI() {
+      document.getElementById("status").textContent = `HP: ${state.hp} / MP: ${state.mp}`;
+      document.getElementById("location").textContent = `現在地：${state.position}m`;
+      const logBox = document.getElementById("log");
+      logBox.innerHTML = state.log.slice(-5).join("<br>");
+    }
+
+    function log(message) {
+      state.log.push(message);
+      updateUI();
+    }
+
+    function step() {
+      state.position += 50;
+      document.getElementById("scene").src = "fork.png";
+      log("あなたは通路を進んだ……");
+    }
+
+    function goBack() {
+      state.position = Math.max(0, state.position - 50);
+      if (state.position === 0) {
+        state.hp = 22;
+        state.mp = 11;
+        document.getElementById("scene").src = "town.png";
+        log("街に戻って休憩した。HPとMPが全回復！");
+      } else {
+        log("あなたは通路を戻った……");
+      }
+    }
+
+    function attack() {
+      log("敵に攻撃した！");
+    }
+
+    function showItems() {
+      log("アイテム：ショートソード、ポーション");
+    }
+
+    function showSkills() {
+      log("スキル：ファイアボール、ヒール（未実装）");
+    }
+
+    window.onload = updateUI;
+  </script>
+</body>
+</html>
