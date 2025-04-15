@@ -1,0 +1,198 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>Last Layer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      background-color: #111;
+      color: white;
+      font-family: sans-serif;
+      text-align: center;
+      font-size: 18px;
+      margin: 0;
+      padding: 0;
+    }
+    button {
+      margin: 8px;
+      padding: 14px 24px;
+      font-size: 16px;
+      background-color: #333;
+      color: white;
+      border: none;
+      border-radius: 5px;
+    }
+    #status, #log {
+      margin: 16px auto;
+      width: 90%;
+      max-width: 700px;
+    }
+    #log {
+      padding: 10px;
+      background-color: #222;
+      min-height: 60px;
+    }
+    #scene {
+      width: 90%;
+      max-width: 350px;
+      height: auto;
+      margin: 10px;
+      border: 1px solid #555;
+    }
+    .item, .skill {
+      display: inline-block;
+      margin: 5px;
+      padding: 6px;
+      background-color: #444;
+      border-radius: 5px;
+      font-size: 15px;
+    }
+    .item img {
+      width: 20px;
+      height: 20px;
+      vertical-align: middle;
+      margin-right: 6px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Last Layer</h1>
+  <div id="status"></div>
+  <img id="scene" src="safe_zone_background.png" alt="scene" onerror="this.style.display='none'" />
+  <div id="log">冒険を始めよう…</div>
+  <div>
+    <button onclick="goForward()">進む</button>
+    <button onclick="goBack()">戻る</button>
+    <button onclick="attack()">攻撃</button>
+    <button onclick="showItems()">アイテム</button>
+    <button onclick="showSkills()">スキル</button>
+  </div>
+  <div id="items"></div>
+  <div id="skills"></div>
+
+<script>
+let player = {
+  hp: 20, mp: 10, maxHp: 20, maxMp: 10,
+  atk: 5, matk: 3, def: 3, mdef: 2, spd: 5,
+  exp: 0, level: 1, location: 0,
+  equipped: "ショートソード",
+  items: [
+    { name: "ショートソード", icon: "sword.png" },
+    { name: "ポーション", icon: "item_potion_basic_fire.png" }
+  ],
+  skills: ["ファイアボール", "ヒール"]
+};
+
+let currentEnemy = null;
+
+const enemies = [
+  { name: "野盗", hp: 14, atk: 6, def: 2, spd: 6, img: "bandit.png" },
+  { name: "ゾンビ", hp: 18, atk: 4, def: 4, spd: 2, img: "zombie.png" },
+  { name: "獣人の野盗", hp: 16, atk: 5, def: 3, spd: 7, img: "beastman.png" }
+];
+
+function updateStatus() {
+  document.getElementById("status").innerHTML =
+    `HP: ${player.hp} / MP: ${player.mp}<br>EXP: ${player.exp}<br>現在地：${player.location}m`;
+}
+
+function log(text) {
+  document.getElementById("log").innerText = text;
+}
+
+function clearUI() {
+  document.getElementById("items").innerHTML = "";
+  document.getElementById("skills").innerHTML = "";
+}
+
+function goForward() {
+  if (currentEnemy) {
+    log("敵がまだ倒されていない！");
+    return;
+  }
+  clearUI();
+  player.location += 50;
+
+  const rand = enemies[Math.floor(Math.random() * enemies.length)];
+  currentEnemy = JSON.parse(JSON.stringify(rand));
+  document.getElementById("scene").src = currentEnemy.img;
+  log(`${currentEnemy.name} が現れた！`);
+  updateStatus();
+}
+
+function goBack() {
+  clearUI();
+  if (player.location > 0) {
+    player.location -= 50;
+    document.getElementById("scene").src = "safe_zone_background.png";
+    log("街に戻って休憩した。HPとMPが全回復！");
+    player.hp = player.maxHp;
+    player.mp = player.maxMp;
+    updateStatus();
+  }
+}
+
+function attack() {
+  clearUI();
+  if (!currentEnemy) {
+    log("攻撃できる敵がいない！");
+    return;
+  }
+  const damage = Math.max(0, player.atk - currentEnemy.def);
+  currentEnemy.hp -= damage;
+  let result = `${currentEnemy.name} に ${damage} ダメージを与えた！`;
+
+  if (currentEnemy.hp <= 0) {
+    result += `\n${currentEnemy.name} を倒した！`;
+    currentEnemy = null;
+  } else {
+    const enemyDmg = Math.max(0, currentEnemy.atk - player.def);
+    player.hp -= enemyDmg;
+    result += `\n${currentEnemy.name} の反撃！ ${enemyDmg} ダメージを受けた！`;
+  }
+
+  log(result);
+  updateStatus();
+}
+
+function showItems() {
+  clearUI();
+  const container = document.getElementById("items");
+  player.items.forEach((item, index) => {
+    const div = document.createElement("div");
+    div.className = "item";
+    div.innerHTML = `<img src="${item.icon}" alt="">${item.name}`;
+    div.onclick = () => {
+      if (item.name === "ポーション") {
+        player.hp = Math.min(player.hp + 10, player.maxHp);
+        log("ポーションを使用しHPを回復した！");
+        player.items.splice(index, 1);
+      } else if (item.name === "ショートソード") {
+        player.equipped = item.name;
+        player.atk = 5;
+        log("ショートソードを装備した！");
+      }
+      updateStatus();
+      showItems();
+    };
+    container.appendChild(div);
+  });
+}
+
+function showSkills() {
+  clearUI();
+  const container = document.getElementById("skills");
+  player.skills.forEach((skill) => {
+    const div = document.createElement("div");
+    div.className = "skill";
+    div.innerText = skill;
+    container.appendChild(div);
+  });
+}
+
+updateStatus();
+</script>
+</body>
+</html>
